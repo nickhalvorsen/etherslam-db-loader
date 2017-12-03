@@ -11,5 +11,8 @@
   "dependencies": {
     "pg": "^7.4.0",
     "web3": "^1.0.0-beta.26"
+  },
+  "devDependencies": {
+    "sleep": "^5.1.1"
   }
 }

@@ -30,7 +30,7 @@ async function addTransactionsFromBlockRange(startBlock, endBlock) {
 
         if (i % 100 == 0)
         {
-            sleep.msleep(100);
+            sleep(5000);
         }
 
         await addTransactionsFromBlock(i, client);
@@ -43,8 +43,8 @@ async function addTransactionsFromBlock(blockIndex)
     console.log(`getting transactions from block ${blockIndex} (${txCount} transactions)`); 
 
     // I'm not sure why this can be null. Seems to happen for blocks of height < 1000
-    if (txCount === null || txCount == 0) {
-        return;
+    if (txCount === null) {
+        return
     }
 
     var block = await web3.eth.getBlock(blockIndex);
