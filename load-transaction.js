@@ -1,7 +1,6 @@
 var path = require('path');
 var Web3 = require('web3');
 var web3 = new Web3(Web3.givenProvider || "http://127.0.0.1:18545");
-var sleep = require('sleep')
 
 const { Client } = require('pg');
 const client = new Client();
@@ -27,12 +26,6 @@ addTransactionsFromBlockRange(startBlockNumber, endBlockNumber);
 
 async function addTransactionsFromBlockRange(startBlock, endBlock) {
     for (var i = startBlock; i <= endBlock; i++) {
-
-        if (i % 100 == 0)
-        {
-            sleep.msleep(100);
-        }
-
         await addTransactionsFromBlock(i, client);
     }
 }
@@ -43,20 +36,22 @@ async function addTransactionsFromBlock(blockIndex)
     console.log(`getting transactions from block ${blockIndex} (${txCount} transactions)`); 
 
     // I'm not sure why this can be null. Seems to happen for blocks of height < 1000
-    if (txCount === null || txCount == 0) {
-        return;
+    if (txCount === null) {
+        return
     }
-
-    var block = await web3.eth.getBlock(blockIndex);
+    
+    // "true" means return the full transaction objects
+    var block = await web3.eth.getBlock(blockIndex, true);
     
     for (var i = 0; i < txCount; i++) {
-        await addTransactionFromBlock(block, blockIndex, i);
+        await addTransactionFromBlock(block, i);
     }
 }
 
-async function addTransactionFromBlock(block, blockIndex, txIndex) {
+async function addTransactionFromBlock(block, txIndex) {
 
-    var txData = await web3.eth.getTransactionFromBlock(blockIndex, txIndex);
+    var txData = block.transactions[txIndex];
+
     var transactionReceipt = await web3.eth.getTransactionReceipt(txData.hash);
 
     var fee = transactionReceipt.cumulativeGasUsed * txData.gasPrice;
@@ -67,6 +62,8 @@ async function addTransactionFromBlock(block, blockIndex, txIndex) {
 }
 
 function insertTransaction(hash, block, timestamp, fromaddress, toaddress, value, fee) {
+
+    return;
     var queryString = `INSERT INTO transaction (hash, block, utctime, fromaddress, toaddress, value, fee) values ('${hash}', ${block}, to_timestamp(${timestamp}) at time zone \'UTC\', '${fromaddress}', '${toaddress}', ${value}, ${fee})`;
     client.query(queryString, (err, res) => {
         if (err !== null) {
