@@ -14,4 +14,6 @@ jj();
 async function jj() {
     var j = await client.query("select block from transaction order by block desc limit 1");
     console.log(j.rows[0].block);
+
+    client.end();
 }

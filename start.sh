@@ -1,1 +1,3 @@
-PGUSER=etherslam PGPASSWORD=icedtea PGHOST=localhost PGDATABASE=etherslam node load-transaction.js 1945000 5000000 
+#!/bin/bash
+latest=$(PGUSER=etherslam PGPASSWORD=icedtea PGHOST=localhost PGDATABASE=etherslam node get-latest-block.js)
+PGUSER=etherslam PGPASSWORD=icedtea PGHOST=localhost PGDATABASE=etherslam node load-transaction.js $latest 9000000 

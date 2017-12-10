@@ -2,10 +2,9 @@ var path = require('path');
 var Web3 = require('web3');
 var web3 = new Web3(Web3.givenProvider || "http://127.0.0.1:18545");
 var sleep = require('sleep');
-const { Client } = require('pg');
-const client = new Client();
+const { Pool } = require('pg');
+const pool = new Pool();
 
-client.connect();
 
 // Check command line arguments
 var startBlockNumber = process.argv[2];
@@ -23,12 +22,9 @@ endBlockNumber = parseInt(endBlockNumber);
 
 addTransactionsFromBlockRange(startBlockNumber, endBlockNumber);
 
-//would want to put this somewhere
-//client.end()
-
 async function addTransactionsFromBlockRange(startBlock, endBlock) {
     for (var i = startBlock; i <= endBlock; i++) {
-        await addTransactionsFromBlock(i, client);
+        await addTransactionsFromBlock(i);
     }
 }
 
@@ -64,11 +60,9 @@ async function addTransactionFromBlock(block, txIndex) {
 }
 
 function insertTransaction(hash, block, timestamp, fromaddress, toaddress, value, fee) {
-    sleep.msleep(1);
-    return;
     var queryString = `INSERT INTO transaction (hash, block, utctime, fromaddress, toaddress, value, fee) values ('${hash}', ${block}, to_timestamp(${timestamp}) at time zone \'UTC\', '${fromaddress}', '${toaddress}', ${value}, ${fee})`;
-    client.query(queryString, (err, res) => {
-        if (err !== null) {
+    pool.query(queryString, (err, res) => {
+        if (err) {
             if (err.code === '23505'
                 && err.constraint === 'transaction_hash_key') {
                 console.log(`Transaction ${hash.substring(0, 8)}... in block ${block} already inserted`);
