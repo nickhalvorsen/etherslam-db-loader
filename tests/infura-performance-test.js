@@ -1,38 +1,35 @@
 var Web3 = require('web3');
-var web3 = new Web3(Web3.givenProvider || "http://127.0.0.1:18545");
+var web3 = new Web3(Web3.givenProvider || "https://mainnet.infura.io/Pqtb5zPujGYRo7xXn3ri");
 
-var startBlockNumber = 3800000;
-var endBlockNumber = startBlockNumber + 100000;
-var testDuration = 10
+var testDuration = 10;
+var maxTests = 100;
+var count = 0;
+var tests = 0;
 
-var shouldKeepGoing = true;
-
-setTimeout(function() {
-    shouldKeepGoing = false;
-}, testDuration * 1000);
-
-
-console.log(`Running for ${testDuration} seconds`);
-
-//addTransactionsFromBlockRange(startBlockNumber, endBlockNumber);
-
-jj();
-
-
-async function jj() {
-    
-    var wer = await web3.eth.getBlock(4000000);
-    var hash= wer.transactions[0];
-
-    var times = 0;
-    while (shouldKeepGoing) {
-        times++;
-        var hh = web3.eth.getTransactionReceipt(hash).then(1+1);
+function logProgress() {
+    var msAvg = (testDuration * 1000 / count).toFixed(2);
+    console.log(`Ran GetTransactionReceipt ${count} times in ${testDuration} seconds. (${msAvg}ms average)`);
+    count = 0;
+    tests++;
+    if (tests < maxTests) {
+        setTimeout(logProgress, testDuration * 1000);
     }
-
-    console.log(times);
 }
 
+setTimeout(logProgress, testDuration * 1000);
+
+console.log(`Running ${maxTests} tests for ${testDuration} seconds at a time...`);
+
+mainLoop();
+async function mainLoop() {
+    
+    var hash = '0x994840d01d8c60b3a1a52b9119865dcbae683660482175038cd22c1cbbec679c';
+
+    while (true) {
+        await web3.eth.getTransactionReceipt(hash);
+        count++;
+    }
+}
 
 
 

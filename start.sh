@@ -1,1 +1,1 @@
-PGUSER=etherslam PGPASSWORD=icedtea PGHOST=localhost PGDATABASE=etherslam node load-transaction.js 3000000 3010000 
+PGUSER=etherslam PGPASSWORD=icedtea PGHOST=localhost PGDATABASE=etherslam node load-transaction.js 1945000 5000000 
