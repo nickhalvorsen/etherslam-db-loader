@@ -2,9 +2,17 @@ var path = require('path');
 var Web3 = require('web3');
 var web3 = new Web3(Web3.givenProvider || "http://127.0.0.1:18545");
 var sleep = require('sleep');
+require('dotenv').config();
 const { Pool } = require('pg');
-const pool = new Pool();
 
+const pool = new Pool({                                                     
+    host: process.env.DB_HOST
+    , port: process.env.DB_PORT
+    , database: process.env.DB_NAME
+    , user: process.env.DB_USER
+    , password: process.env.DB_PASSWORD
+    , max: 20
+});
 
 // Check command line arguments
 var startBlockNumber = process.argv[2];
