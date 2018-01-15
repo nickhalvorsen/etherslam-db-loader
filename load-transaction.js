@@ -1,8 +1,8 @@
 var path = require('path');
 var Web3 = require('web3');
-var web3 = new Web3(Web3.givenProvider || process.env.WEB3_HOST);
-var sleep = require('sleep');
 require('dotenv').config();
+var web3 = new Web3(Web3.givenProvider || process.env.WEB3_HOST );
+var sleep = require('sleep');
 const { Pool } = require('pg');
 
 const pool = new Pool({                                                     
@@ -11,9 +11,8 @@ const pool = new Pool({
     , database: process.env.DB_NAME
     , user: process.env.DB_USER
     , password: process.env.DB_PASSWORD
-    , max: 20
+    , max: 30
 });
-
 // Check command line arguments
 var startBlockNumber = process.argv[2];
 var endBlockNumber = process.argv[3];
@@ -46,34 +45,28 @@ async function addTransactionsFromBlock(blockIndex)
     if (txCount === null) {
         return
     }
-    
     // "true" means return the full transaction objects
     var block = await web3.eth.getBlock(blockIndex, true);
 
-    for (var i = 0; i < txCount; i++) {
-        await addTransactionFromBlock(block, i);
+    await addTransactionsFromBlockData(block);
+}
+
+async function addTransactionsFromBlockData(block) {
+    sleep.msleep(2);   
+    var queryString = "INSERT INTO transaction (hash, block, utctime, fromaddress, toaddress, value) values"; 
+
+    for (var i = 0; i < block.transactions.length; i++) {
+        var tx = block.transactions[i];
+        queryString += `('${tx.hash}', ${tx.blockNumber}, to_timestamp(${block.timestamp}) at time zone \'UTC\', '${tx.from}', '${tx.to}', ${tx.value}),`;
     }
-}
 
-async function addTransactionFromBlock(block, txIndex) {
+    queryString = queryString.substring(0, queryString.length - 1);
 
-    var txData = block.transactions[txIndex];
-    //var transactionReceipt = await web3.eth.getTransactionReceipt(txData.hash);
-
-    //var fee = transactionReceipt.cumulativeGasUsed * txData.gasPrice;
-
-    //console.log(`Inserting tx ${txData.hash.substring(0, 8)}... from block ${txData.blockNumber}`);
-
-    insertTransaction(txData.hash, txData.blockNumber, block.timestamp, txData.from, txData.to, txData.value, 'NULL');
-}
-
-function insertTransaction(hash, block, timestamp, fromaddress, toaddress, value, fee) {
-    var queryString = `INSERT INTO transaction (hash, block, utctime, fromaddress, toaddress, value, fee) values ('${hash}', ${block}, to_timestamp(${timestamp}) at time zone \'UTC\', '${fromaddress}', '${toaddress}', ${value}, ${fee})`;
     pool.query(queryString, (err, res) => {
         if (err) {
             if (err.code === '23505'
                 && err.constraint === 'transaction_hash_key') {
-                console.log(`Transaction ${hash.substring(0, 8)}... in block ${block} already inserted`);
+                console.log(`a transaction in block ${block} already inserted`);
             }
             else {
               console.log(err ? err.stack : res);
