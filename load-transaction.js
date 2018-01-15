@@ -1,6 +1,6 @@
 var path = require('path');
 var Web3 = require('web3');
-var web3 = new Web3(Web3.givenProvider || "http://127.0.0.1:18545");
+var web3 = new Web3(Web3.givenProvider || process.env.WEB3_HOST);
 var sleep = require('sleep');
 require('dotenv').config();
 const { Pool } = require('pg');
